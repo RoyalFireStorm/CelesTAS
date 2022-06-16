@@ -46,10 +46,31 @@ def parsedInputs(inputs):
             if(letter == 'S'):
                 sol[8] = 1
     return sol
+def parsedStatuses(inputs):
+    sol = [0] * 8
+    #In order, R - L - U - D - J - X - Z - G - S
+    for status in inputs:
+        if(status == 'Wall-R'):
+            sol[0] = 1
+        if(status == 'Wall-L'):
+            sol[1] = 1
+        if(status == 'CanDash'):
+            sol[2] = 1
+        if(status == 'Ground'):
+            sol[3] = 1
+        if(status == 'Dead'):
+            sol[4] = 1
+        if(status == 'Coyote'):
+            sol[5] = 1
+        if(status == 'NoControl'):
+            sol[6] = 1
+        if(status == 'Paused'):
+            sol[7] = 1
+    return sol
 
 
 def screenshot():
-    time.sleep(0.1)
+    time.sleep(0.02)
     #Take a screenshot to the region that we choose to be the game
     return pyautogui.screenshot()
 
@@ -87,11 +108,20 @@ def gameinfo(Frame, info):
     if(type(state) != str):
         if(np.isnan(state)):
             state = ''
+    if(state=="StIntroRespawn"):
+        stateNum = 0
+    elif(state=="StDash"):
+        stateNum = 2
+    elif(state=="StClimb"):
+        stateNum = 3
+    else:
+        stateNum = 1
     
     try:
-        statuses = rowFrame['Statuses'].strip().split(' ')
+        status = rowFrame['Statuses'].strip().split(' ')
+        statuses = parsedStatuses(status)
     except:
-        statuses = []
+        statuses = [0] * 8
 
     """ if Frame-1 in info:
         rowPreviousFrame = info.loc[Frame-1]
@@ -101,15 +131,9 @@ def gameinfo(Frame, info):
         if 'Dead' in Previousstatuses: statuses.append('Dead') """
     
 
-    return posX, posY, spdX, spdY, state, statuses, inputs
-   
-def key_capture_thread():
-    global keep_going
-    input()
-    keep_going = False
+    return posX, posY, spdX, spdY, stateNum, statuses, inputs
 
 def grabar_juego():
-    th.Thread(target=key_capture_thread, args=(), name='key_capture_thread', daemon=True).start()
     pyautogui.FAILSAFE = True
     pyautogui.alert('Remenber to set Celeste in the front and full window screen. Press OK to start.')
     frames = 2
@@ -124,7 +148,7 @@ def grabar_juego():
     death = False
     end_level = False
     #Read the txt and only take the important columns that we want for later
-    info = pd.read_csv("dump.txt", delimiter='\t',index_col='Frames')
+    info = pd.read_csv("CelesTAS/dump.txt", delimiter='\t',index_col='Frames')
     info = info.drop(columns=['Line','Entities'])
     #while death == False & end_level == False:
     while frames < 100:
@@ -152,13 +176,13 @@ def avanzarframe(num):
     while i<num:
         pyautogui.keyDown('l')
         pyautogui.keyUp('l')
-        time.sleep(0.05)
+        time.sleep(0.02)
         i +=1
 
 def prepare_image(im):
     im = im.resize((INPUT_WIDTH, INPUT_HEIGHT))
     im_arr = np.frombuffer(im.tobytes(), dtype=np.uint8)
-    im_arr = im_arr.reshape((INPUT_HEIGHT, INPUT_WIDTH, INPUT_CHANNELS))
+    im_arr = im_arr.reshape((INPUT_WIDTH, INPUT_HEIGHT, INPUT_CHANNELS))
     im_arr = np.expand_dims(im_arr, axis=0)
     return im_arr
 
