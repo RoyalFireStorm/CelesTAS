@@ -1,13 +1,14 @@
 import os
+import sys
 import pandas as pd
 from mkdir_p import mkdir_p
 import time
+import psutil
 from PIL import Image
 import pyautogui
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-from keras.layers.merge import concatenate
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten, Input
 from keras.layers import Conv2D
@@ -15,14 +16,16 @@ from keras.layers import BatchNormalization
 from keras.models import Model
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from train import final_model
-from functions import avanzarframe, prepare_image, screenshot, gameinfo
+from functions import avanzarframe, capture_info, prepare_image, screenshot, gameinfo, select_celeste_path
 
 comands = ['R','L','U','D','J','X','Z','G','S']
 
-def introTas(name):
+def introTas(name, model_name):
     pyautogui.write('console hard 1 0.0 144.0')
     pyautogui.press('enter')
-    pyautogui.write(f'StartExportGameInfo run_{name}.txt')
+    pyautogui.write('1')
+    pyautogui.press('enter')
+    pyautogui.write(f'StartExportGameInfo run_{name}_{model_name}.txt')
     pyautogui.press('enter')
     pyautogui.write('2')
     pyautogui.press('enter')
@@ -37,7 +40,7 @@ def alttab():
 
 def writeTas(prediction):
     #In order, R - L - U - D - J - X - Z - G - S
-    alttab()
+    
     pyautogui.press('enter')
     row=[]
     for i, bool in enumerate(prediction):
@@ -50,14 +53,17 @@ def writeTas(prediction):
     
     time.sleep(0.05)
     alttab()
+
 def playTime(model_name, name):
+    #file_dir = select_celeste_path()[:-11] + f"run_{name}_{model_name}.txt"
     mkdir_p("weights")
-    weights_file = "weights/modelo1.hdf5"
+    weights_file = f"weights/{model_name}.hdf5"
     model = final_model()
-    if os.path.isfile(weights_file):
-        model.load_weights(weights_file)
+    if os.path.isfile(weights_file) == False:
+        sys.exit("The model called " + model_name + " does not exists.")    
+    model.load_weights(weights_file)
     mkdir_p("gamesPlayed")
-    game_file = f"gamesPlayed/{name}.tas"
+    game_file = f"gamesPlayed/{name}_{model_name}.tas"
     if os.path.isfile(game_file):
         answer = pyautogui.confirm(text='The name of the new game already exists in the directory. Do you want to overwrite it?',
          buttons=['OK', 'Cancel'], title='ATTENTION')
@@ -65,7 +71,7 @@ def playTime(model_name, name):
             return "The run doesn't start because the run name already exists"
     pyautogui.alert('Remenber to set Celeste Studio in the front with a new clear document. It is necesary too to have Celeste to be the previous window so we can tab it. Press OK to start.')
     time.sleep(3)
-    introTas(name)
+    introTas(name, model_name)
     pyautogui.hotkey('alt','tab', interval=0.1)
     time.sleep(0.1)
     pyautogui.click()
@@ -73,32 +79,34 @@ def playTime(model_name, name):
     pyautogui.keyUp('o')
     pyautogui.keyDown('p')
     pyautogui.keyUp('p')
-    avanzarframe(36)
-    frames=39
-    while frames < 60:
+    avanzarframe(1)
+    alttab()
+    time.sleep(1)
+    im = pyautogui.screenshot(region=(0,900, 350, 135))
+    frames= capture_info(im)[0]
+    avanzarframe(42 - frames)
+    alttab()
+    time.sleep(0.3)
+    while frames < 100:
             image = prepare_image(screenshot())
-            info = pd.read_csv("CelesTAS/dump.txt", delimiter='\t',index_col='Frames')
-            info = info.drop(columns=['Line','Entities'])
-            posX, posY, spdX, spdY, state, statuses, inputs = gameinfo(frames, info)
-            if(posX=='skip'):
-                avanzarframe(2)
-                frames = frames + 2
-                continue
-            else:
-                imageaux = np.asarray(image)
-                aux = [float(posX), float(posY), float(spdX), float(spdY), state]
-                aux= np.asarray([aux +statuses])
-                sol = model.predict(x=[aux,imageaux])
-                sol = sol[0].tolist()
-                for i,  value in enumerate(sol):
-                    sol[i]=round(value)
-                writeTas(sol)
-                if 'Dead' in statuses:
-                    death = True
-                if (float(posX) == 4991.1264) & (float(posY) == -3202.0181):
-                    end_level = True
-                avanzarframe(2)
-                frames = frames + 2
+            alttab()
+            im = pyautogui.screenshot(region=(0,900, 350, 135))
+            frames, posX, posY, spdX, spdY, state, statuses = capture_info(im)
+            imageaux = np.asarray(image)
+            aux = [posX, posY, spdX, spdY, state]
+            aux= np.asarray([aux +statuses])
+            sol = model.predict(x=[aux,imageaux])
+            sol = sol[0].tolist()
+            for i,  value in enumerate(sol):
+                sol[i]=round(value)
+            writeTas(sol)
+            if 'Dead' in statuses:
+                death = True
+            if (5040 <= int(float(posX)) <= 5056) & (-3266 >= int(float(posY)) + 12 >= -3280):
+                end_level = True
+            avanzarframe(2)
+            frames = frames + 2
+            print(frames)
 
 if __name__ == '__main__':
-    playTime('x', 'y')
+    playTime('modelo5', 'a')

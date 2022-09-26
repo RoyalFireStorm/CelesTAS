@@ -1,24 +1,22 @@
-from msilib.schema import Error
-from attr import Attribute
-import math
-import py
+from ftplib import error_temp
+import os
 import re
+import sys
 import pyautogui
 import time
 import numpy as np
-from numpy import array, dtype
+import psutil
+from numpy import array
 import pandas as pd
-import matplotlib.pyplot as plt
-from PIL import Image
-from sqlalchemy import Integer
-import threading as th
+from traitlets import default
+from pytesseract import pytesseract
 
 keep_going = True
 #Aspect ratio 16:9. We are looking for nHD standard resolution
 INPUT_WIDTH = 640
 INPUT_HEIGHT = 360
 INPUT_CHANNELS = 3
-
+pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 def parsedInputs(inputs):
     sol = [0] * 9
@@ -48,7 +46,7 @@ def parsedInputs(inputs):
     return sol
 def parsedStatuses(inputs):
     sol = [0] * 8
-    #In order, R - L - U - D - J - X - Z - G - S
+
     for status in inputs:
         if(status == 'Wall-R'):
             sol[0] = 1
@@ -64,7 +62,7 @@ def parsedStatuses(inputs):
             sol[5] = 1
         if(status == 'NoControl'):
             sol[6] = 1
-        if(status == 'Paused'):
+        if(status == 'Frozen'):
             sol[7] = 1
     return sol
 
@@ -134,7 +132,7 @@ def gameinfo(Frame, info):
     return posX, posY, spdX, spdY, stateNum, statuses, inputs
 
 def grabar_juego():
-    pyautogui.FAILSAFE = True
+    file_dir = select_celeste_path()[:-11] + f"dump.txt"
     pyautogui.alert('Remenber to set Celeste in the front and full window screen. Press OK to start.')
     frames = 2
     data = []
@@ -148,10 +146,10 @@ def grabar_juego():
     death = False
     end_level = False
     #Read the txt and only take the important columns that we want for later
-    info = pd.read_csv("CelesTAS/dump.txt", delimiter='\t',index_col='Frames')
+    info = pd.read_csv(file_dir, delimiter='\t',index_col='Frames')
     info = info.drop(columns=['Line','Entities'])
-    #while death == False & end_level == False:
-    while frames < 100:
+    #while death == False and end_level == False:
+    while end_level == False and frames <= 450:
             image = prepare_image(screenshot())
             posX, posY, spdX, spdY, state, statuses, inputs = gameinfo(frames, info)
             if(posX=='skip'):
@@ -164,11 +162,12 @@ def grabar_juego():
                 data.append(aux)
                 if 'Dead' in statuses:
                     death = True
-                if (float(posX) == 4991.1264) & (float(posY) == -3202.0181):
+                if (5040 <= int(float(posX)) <= 5056) & (-3266 >= int(float(posY)) + 12 >= -3280): #Goal Coordinates (+12 because the coordinates of the player are in their feets)
                     end_level = True
+                    print('End Level')
                 avanzarframe(2)
                 frames = frames + 2
-
+    #TODO: Check if end_level is working properly with debug
     print('The recording has stopped')
     return data
 def avanzarframe(num):
@@ -186,8 +185,99 @@ def prepare_image(im):
     im_arr = np.expand_dims(im_arr, axis=0)
     return im_arr
 
-def train_run(model):
-    
-    
-    
-    return 0
+def select_celeste_path():
+    pyautogui.FAILSAFE = False
+    discs = psutil.disk_partitions()
+    question = "In what disc is your Celeste game? "
+    text = "Please select: "
+    root_paths = []
+    for disc in discs:
+        root_paths.append(disc.device)
+        text = text + "\n " + disc.device[0] + " if you want to search in disc " + disc.device
+    question = question + text
+    selected_disc = pyautogui.prompt(question, default = discs[0].device[0])
+    while(selected_disc != None):
+        if selected_disc in root_paths or selected_disc+":\\" in root_paths:
+            if(len(selected_disc)== 1):
+                selected_disc =  selected_disc + ":\\"
+            break
+        else:
+            error_Message = "Could not find disc " + selected_disc + " in your root directory. Please try again using only the letter or the disc format.\n" + text
+            selected_disc = pyautogui.prompt(error_Message, default = discs[0].device[0])
+    if(selected_disc == None):
+        sys.exit("Shutting down requested by the user.")
+    print("Seaching Celeste in disc " + selected_disc + "..." + " This could take some time...")
+    dir_results = find_files("Celeste.exe", selected_disc)
+    r = re.compile(".*Celeste\\\\Celeste\.exe")
+    dir_results = list(filter(r.match, dir_results))
+    if(len(dir_results) == 0):
+        sys.exit("No Celeste files found for disc " + disc.device)
+    return dir_results[0]
+
+def find_files(filename, search_path):
+   result = []
+
+# Walking top-down from the root
+   for root, dir, files in os.walk(search_path):
+      if filename in files:
+         result.append(os.path.join(root, filename))
+   return result
+
+def capture_info(im):
+    text = pytesseract.image_to_string(im)
+    split1 = text.split('\n')
+    print(split1)
+
+    aux = 0
+    frame,stateNum = 0, 0
+    posX, posY, spdX, spdY = 0.0, 0.0, 0.0, 0.0
+    statuses = [0] * 8
+    for slice in split1:
+        slice = slice.strip()
+        if not slice:
+            continue
+        if "/" in slice:
+            if(aux == 0):
+                frame = int(slice.split('/', 1)[0])
+                continue
+            else: continue
+        if "," in slice:
+            d = re.findall("-?\d+\.\d+", slice)
+            if len(d) == 2:
+                if(aux == 0):
+                    posX, posY = float(d[0]), float(d[1])
+                    aux = 1
+                elif(aux == 1):
+                    spdX, spdY = float(d[0]), float(d[1])
+                    aux = -1
+                elif(aux == -1):
+                    continue
+            else:
+                continue
+            
+        if(bool(re.findall("Wall-?R", slice, re.IGNORECASE))):
+            statuses[0] = 1
+        if(bool(re.findall("Wall-?L", slice, re.IGNORECASE))):
+            statuses[1] = 1
+        if(bool(re.findall("CanDash", slice, re.IGNORECASE))):
+            statuses[2] = 1
+        if(bool(re.findall("Ground", slice, re.IGNORECASE))):
+            statuses[3] = 1
+        if(bool(re.findall("Dead", slice, re.IGNORECASE))):
+            statuses[4] = 1
+        if(bool(re.findall("Coyote", slice, re.IGNORECASE))):
+            statuses[5] = 1
+        if(bool(re.findall("NoControl", slice, re.IGNORECASE))):
+            statuses[6] = 1
+        if(bool(re.findall("Frozen", slice, re.IGNORECASE))):
+            statuses[7] = 1
+        if(bool(re.findall("StIntroRespawn", slice, re.IGNORECASE))):
+            stateNum = 0
+        elif(bool(re.findall("StDash", slice, re.IGNORECASE))):
+            stateNum = 1
+        elif(bool(re.findall("StClimb", slice, re.IGNORECASE))):
+            stateNum = 2
+        elif(bool(re.findall("StNormal", slice, re.IGNORECASE))):
+            stateNum = 3
+        
+    return frame, posX, posY, spdX, spdY, stateNum, statuses

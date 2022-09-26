@@ -1,14 +1,15 @@
+import argparse
 import os
 from mkdir_p import mkdir_p
 import time
 from PIL import Image
 import pyautogui
+import psutil
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-from keras.layers.merge import concatenate
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten, Input
+from keras.layers import Dense, Dropout, Flatten, Input, concatenate
 from keras.layers import Conv2D
 from keras.layers import BatchNormalization
 from keras.models import Model
@@ -122,10 +123,10 @@ def load_training_data():
 
 if __name__ == '__main__':
 
-    '''parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser()
     parser.add_argument('model')
     parser.add_argument('-c', '--cpu', action='store_true', help='Force Tensorflow to use the CPU.', default=False)
-    args = parser.parse_args()'''
+    args = parser.parse_args()
     # Load Training Data
     X_train_images,X_train_info, y_train,X_val_images, X_val_info, y_val = load_training_data()
 
@@ -133,22 +134,22 @@ if __name__ == '__main__':
     print(X_val.shape[0], 'validation samples.')'''
 
     # Training loop variables
-    epochs = 50
+    epochs = 30
     batch_size = 50
 
     model = final_model()
 
     mkdir_p("weights")
-    weights_file = "weights/modelo1.hdf5"  #.format(args.model)
+    weights_file = "weights/{}.hdf5".format(args.model)
     if os.path.isfile(weights_file):
         model.load_weights(weights_file)
     model.compile(loss=tf.keras.losses.BinaryCrossentropy(), optimizer= tf.keras.optimizers.Adam(learning_rate=0.0001))
     checkpointer = ModelCheckpoint(
-        monitor='val_loss', filepath=weights_file, verbose=1, save_best_only=True, mode='min')
+        monitor='loss', filepath=weights_file, verbose=1, save_best_only=True, mode='min')
     earlystopping = EarlyStopping(monitor='val_loss', patience=20)
     model.fit(x=[X_train_info, X_train_images],y=y_train, batch_size=batch_size, epochs=epochs,
               callbacks=[checkpointer, earlystopping], verbose=True)
-    model.save("weights/modelo1.hdf5")
-    '''.format(args.model)'''
-    #validation_data=(X_val, y_val),
-    
+    model.save("weights/{}.hdf5".format(args.model))
+    print("Model saved as {}.hdf5".format(args.model))
+
+
