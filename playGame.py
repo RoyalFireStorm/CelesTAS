@@ -21,7 +21,7 @@ from functions import avanzarframe, capture_info, prepare_image, screenshot, gam
 comands = ['R','L','U','D','J','X','Z','G','S']
 
 def introTas(name, model_name):
-    pyautogui.write('console hard 1 0.0 144.0')
+    pyautogui.write('console load 1')
     pyautogui.press('enter')
     pyautogui.write('1')
     pyautogui.press('enter')
@@ -29,7 +29,7 @@ def introTas(name, model_name):
     pyautogui.press('enter')
     pyautogui.write('2')
     pyautogui.press('enter')
-    pyautogui.write('40')
+    pyautogui.write('90')
     pyautogui.press('enter')
     
 
@@ -84,10 +84,10 @@ def playTime(model_name, name):
     time.sleep(1)
     im = pyautogui.screenshot(region=(0,900, 350, 135))
     frames= capture_info(im)[0]
-    avanzarframe(42 - frames)
+    avanzarframe(93 - frames)
     alttab()
     time.sleep(0.3)
-    while frames < 100:
+    while frames < 200:
             image = prepare_image(screenshot())
             alttab()
             im = pyautogui.screenshot(region=(0,900, 350, 135))
@@ -109,4 +109,4 @@ def playTime(model_name, name):
             print(frames)
 
 if __name__ == '__main__':
-    playTime('modelo5', 'a')
+    playTime('modelo_intento_2', 'Firstly')

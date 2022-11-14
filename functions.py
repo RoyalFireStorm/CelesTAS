@@ -149,7 +149,7 @@ def grabar_juego():
     info = pd.read_csv(file_dir, delimiter='\t',index_col='Frames')
     info = info.drop(columns=['Line','Entities'])
     #while death == False and end_level == False:
-    while end_level == False and frames <= 450:
+    while end_level == False and frames <= 3225:
             image = prepare_image(screenshot())
             posX, posY, spdX, spdY, state, statuses, inputs = gameinfo(frames, info)
             if(posX=='skip'):
