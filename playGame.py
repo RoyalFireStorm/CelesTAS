@@ -1,27 +1,17 @@
+import argparse
 import os
 import sys
-import pandas as pd
 from mkdir_p import mkdir_p
 import time
-import psutil
-from PIL import Image
 import pyautogui
 import numpy as np
-import tensorflow as tf
-from tensorflow import keras
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten, Input
-from keras.layers import Conv2D
-from keras.layers import BatchNormalization
-from keras.models import Model
-from keras.callbacks import ModelCheckpoint, EarlyStopping
 from train import final_model
-from functions import avanzarframe, capture_info, prepare_image, screenshot, gameinfo, select_celeste_path
+from functions import avanzarframe, capture_info, prepare_image, screenshot
 
 comands = ['R','L','U','D','J','X','Z','G','S']
 
 def introTas(name, model_name):
-    pyautogui.write('console load 1')
+    pyautogui.write('console load 0')
     pyautogui.press('enter')
     pyautogui.write('1')
     pyautogui.press('enter')
@@ -55,7 +45,6 @@ def writeTas(prediction):
     alttab()
 
 def playTime(model_name, name):
-    #file_dir = select_celeste_path()[:-11] + f"run_{name}_{model_name}.txt"
     mkdir_p("weights")
     weights_file = f"weights/{model_name}.hdf5"
     model = final_model()
@@ -70,7 +59,7 @@ def playTime(model_name, name):
         if(answer=='Cancel'): 
             return "The run doesn't start because the run name already exists"
     pyautogui.alert('Remenber to set Celeste Studio in the front with a new clear document. It is necesary too to have Celeste to be the previous window so we can tab it. Press OK to start.')
-    time.sleep(3)
+    time.sleep(5)
     introTas(name, model_name)
     pyautogui.hotkey('alt','tab', interval=0.1)
     time.sleep(0.1)
@@ -109,4 +98,9 @@ def playTime(model_name, name):
             print(frames)
 
 if __name__ == '__main__':
-    playTime('modelo_intento_2', 'Firstly')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('model')
+    parser.add_argument('name')
+    args = parser.parse_args()
+
+    playTime(args.model, args.name)

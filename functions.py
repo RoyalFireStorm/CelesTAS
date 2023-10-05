@@ -1,4 +1,3 @@
-from ftplib import error_temp
 import os
 import re
 import sys
@@ -6,9 +5,7 @@ import pyautogui
 import time
 import numpy as np
 import psutil
-from numpy import array
 import pandas as pd
-from traitlets import default
 from pytesseract import pytesseract
 
 keep_going = True
@@ -105,13 +102,13 @@ def gameinfo(Frame, info):
     state = rowFrame['State']
     if(type(state) != str):
         if(np.isnan(state)):
-            state = ''
+            state = 'StNormal'
     if(state=="StIntroRespawn"):
         stateNum = 0
     elif(state=="StDash"):
-        stateNum = 2
-    elif(state=="StClimb"):
         stateNum = 3
+    elif(state=="StClimb"):
+        stateNum = 2
     else:
         stateNum = 1
     
@@ -132,7 +129,7 @@ def gameinfo(Frame, info):
     return posX, posY, spdX, spdY, stateNum, statuses, inputs
 
 def grabar_juego():
-    file_dir = select_celeste_path()[:-11] + f"dump.txt"
+    file_dir = select_celeste_path()[:-11] + f"training.txt"
     pyautogui.alert('Remenber to set Celeste in the front and full window screen. Press OK to start.')
     frames = 2
     data = []
@@ -148,8 +145,8 @@ def grabar_juego():
     #Read the txt and only take the important columns that we want for later
     info = pd.read_csv(file_dir, delimiter='\t',index_col='Frames')
     info = info.drop(columns=['Line','Entities'])
-    #while death == False and end_level == False:
-    while end_level == False and frames <= 3225:
+    print(info.size)
+    while death == False and end_level == False:
             image = prepare_image(screenshot())
             posX, posY, spdX, spdY, state, statuses, inputs = gameinfo(frames, info)
             if(posX=='skip'):
@@ -162,13 +159,13 @@ def grabar_juego():
                 data.append(aux)
                 if 'Dead' in statuses:
                     death = True
-                if (5040 <= int(float(posX)) <= 5056) & (-3266 >= int(float(posY)) + 12 >= -3280): #Goal Coordinates (+12 because the coordinates of the player are in their feets)
+                if (2043 <= int(float(posX)) <= 2111) & (40 >= int(float(posY)) + 12 >= 74): #Goal Coordinates (+12 because the coordinates of the player are in their feets)
                     end_level = True
                     print('End Level')
                 avanzarframe(2)
                 frames = frames + 2
-    #TODO: Check if end_level is working properly with debug
     print('The recording has stopped')
+
     return data
 def avanzarframe(num):
     i=0
