@@ -4,11 +4,11 @@ Las Inteligencias Artificiales están cada vez apareciendo más en los videojueg
 
 ## Instalación
  Para el correcto funcionamiento de la aplicación es necesario:
-    - Una copia del videojuego Celeste.
-    - El mod Celeste Studio. Toda la información sobre la instalación e instrucciones para usarlo con el videojuego la podemos encontrar en su repositorio de Github. https://github.com/EverestAPI/CelesteTAS-EverestInterop
-    - Tesseract (recomendable la versión 5.0 en adelante)
-    - Python (recomendable la versión 3.11.5)
-    - Las librerías que usaremos en Python:
+ - Una copia del videojuego Celeste.
+ - El mod Celeste Studio. Toda la información sobre la instalación e instrucciones para usarlo con el videojuego la podemos encontrar en su repositorio de Github. https://github.com/EverestAPI/CelesteTAS-EverestInterop
+ - Tesseract (recomendable la versión 5.0 en adelante)
+ - Python (recomendable la versión 3.11.5)
+   - Las librerías que usaremos en Python:
         - Numpy.
         - Pandas.
         - mk_dir.
