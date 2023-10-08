@@ -10,8 +10,9 @@ from functions import avanzarframe, capture_info, prepare_image, screenshot, par
 
 comands = ['R','L','U','D','J','X','Z','G','S']
 
-def introTas(name, model_name):
-    pyautogui.write('console load 0')
+def introTas(name, model_name, level):
+    parseConfig("level")
+    pyautogui.write(f'console load {level}')
     pyautogui.press('enter')
     pyautogui.write('1')
     pyautogui.press('enter')

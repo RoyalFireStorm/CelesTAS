@@ -9,3 +9,4 @@ lossFunction=cosine_similarity
 optimizerFunction=adam
 epochs=20
 batchSize=50
+level=0
