@@ -177,7 +177,9 @@ def grabar_juego():
                 aux = [imageaux, posX, posY, spdX, spdY, state, statuses, inputs]
                 data.append(aux)
                 if 'Dead' in statuses:
-                    death = True
+                    avanzarframe(10)
+                    frames = frames + 10
+                    continue
                 if (endX1 <= int(float(posX)) <= endX2) & (endY1 >= int(float(posY)) + 12 >= endY2): #Goal Coordinates (+12 because the coordinates of the player are in their feets)
                     end_level = True
                     print('End Level')
