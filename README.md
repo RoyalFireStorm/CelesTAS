@@ -1,37 +1,38 @@
 # CelesTAS
 
-Las Inteligencias Artificiales están cada vez apareciendo más en los videojuegos, aunqué suelen ser en los retro, que tiene mecánicas simples o pocos controles. Esto deja atrás a los juegos del momento, como puede ser Hollow Knight, Slay the Spire o Celeste. Por ello, se ha diseñado un proyecto llamado CelesTAS, que permite entrenar al juego con tus partidas favoritas para después permitir al programa de crear nuevas partidas similares a las tuyas. Esto permite jugar ininterrupidamente, lo que puede dar a lugar a nuevos descubrimientos en el mundo del speedrunning o encontrar nuevos errores para que los desarrolladores lo arreglen.
+Artificial Intelligences are increasingly appearing in video games, although they tend to be in retro games, which have simple mechanics or few controls. This leaves behind the games of the moment, such as Hollow Knight, Slay the Spire or Celeste. For this reason, a project called CelesTAS has been designed, which allows you to train the game with your favorite games and then allow the program to create new games similar to yours. This allows for uninterrupted gameplay, which can lead to new discoveries in the world of speedrunning or finding new bugs for developers to fix.
 
-## Instalación
- Para el correcto funcionamiento de la aplicación es necesario:
-    - Una copia del videojuego Celeste.
-    - El mod Celeste Studio. Toda la información sobre la instalación e instrucciones para usarlo con el videojuego la podemos encontrar en su repositorio de Github. https://github.com/EverestAPI/CelesteTAS-EverestInterop
-    - Tesseract (recomendable la versión 5.0 en adelante)
-    - Python (recomendable la versión 3.11.5)
-    - Las librerías que usaremos en Python:
-        - Numpy.
-        - Pandas.
-        - mk_dir.
-        - Keras.
-        - Tensorflow.
-        - Pytesseract.
-        - Pyautogui.
-    - Nvidia Cuda (versión compatible con la gráfica en uso y Tensorflow). Véase https://www.tensorflow.org/install/gpu?hl=es-419#software_requirements
+## Instalation
+* A copy of the Celeste video game.
+* The Celeste Studio mod. All the information regarding installation and instructions for using it with the video game can be found in its GitHub repository. (See below)
+* Tesseract (version 5.0 or later is recommended).
+* Python (version 3.11.5 is recommended)
+* The Python libraries we will use:
+  * Numpy.
+  * Pandas.
+  * mk_dir.
+  * Keras.
+  * Tensorflow.
+  * Pytesseract.
+  * Pyautogui.
+* Nvidia Cuda (compatible version with the graphics card in use and Tensorflow). See https://www.tensorflow.org/install/gpu?hl=en-419#software_requirements
 
+## Launching Commands
 
-## Lanzamiento de la aplicación
+To launch the training phase of the application, open a terminal, navigate to the project's root folder, and execute the following command:
 
-Para lanzar la fase de entrenamiento la aplicacíon, abriremos una terminal, accederemos a la carpeta raiz del proyecto y ejecutaremos:
 ```CMD
 python train.py {name_model} {-c}
 ```
+Where name_model will be the name of the desired model, and -c is an option that forces Tensorflow to use the computer's CPU instead of the GPU. This latter option is optional, and by default, it is disabled.
 
-Donde name model ser a el nombre del modelo que deseemos y -c ser a una opcion que obligara a Tensorflow a usar la CPU del ordenador en vez de la GPU. Esta ́ultima opcion es opcional y por defecto esta desactivada.
+If you want to initiate the prediction phase, use the following command in the terminal:
 
-En caso de querer lanzar la fase de prediccion, usaremos el siguiente comando en la terminal:
 ```CMD
 python playGame.py {model} {name}
 ```
+Where model is the name of the already trained model, and name is the name of the specific race you are going to participate in. The name is solely used for saving race information.
 
-Donde model sera el nombre que tiene el modelo ya entrenado y name ser ́a el nombre de la carrera en haremos en cuestion. El nombre solo se dispone para el guardado de la informacion de la carrera.
+## Reference Projects
+- [CelesteTAS](https://github.com/EverestAPI/CelesteTAS-EverestInterop) - This proyect is a tool for the proyect.
 
