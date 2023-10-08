@@ -1,6 +1,7 @@
 import argparse
 import os
-
+import sys
+import pandas as pd
 import numpy as np
 from keras.layers import (BatchNormalization, Conv2D, Dense, Dropout, Flatten,
                           concatenate)
@@ -8,7 +9,7 @@ from keras.models import Model, Sequential
 from mkdir_p import mkdir_p
 from tensorflow import keras
 
-from functions import grabar_juego
+from functions import (grabar_juego, parseConfig)
 
 # Number of output neurons. 
 #In order, R - L - U - D - J - X - Z - G - S
@@ -112,6 +113,8 @@ def load_training_data():
 
 
 if __name__ == '__main__':
+    config = pd.read_csv("config.txt", delimiter='=',index_col='variable')
+
     parser = argparse.ArgumentParser()
     parser.add_argument('model', default="model_default")
     parser.add_argument('-c', '--cpu', action='store_true', help='Force Tensorflow to use the CPU.', default=False)
@@ -120,8 +123,14 @@ if __name__ == '__main__':
     X_train_images,X_train_info, y_train,X_val_images, X_val_info, y_val = load_training_data()
 
     # Training loop variables
-    epochs = 20
-    batch_size = 10
+    try:
+        epochs = int(parseConfig("epochs", 20))
+        batch_size = int(parseConfig("batchSize", 20))
+    except:
+        sys.exit("The config value of the frames or the end points are not integers. Check it and try again.")
+    
+    loss = parseConfig("lossFunction", keras.losses.cosine_similarity)
+    optimizer = parseConfig("optimizerFunction", 'adam')
 
     model = final_model()
 
@@ -129,7 +138,7 @@ if __name__ == '__main__':
     weights_file = "weights/{}.hdf5".format(args.model)
     if os.path.isfile(weights_file):
         model.load_weights(weights_file)
-    model.compile(loss=keras.losses.cosine_similarity, optimizer= 'adam')
+    model.compile(loss=loss, optimizer= optimizer)
     model.fit(x=[X_train_info, X_train_images],y=y_train, batch_size=batch_size, epochs=epochs,
             verbose=True)
     model.save("weights/{}.hdf5".format(args.model))

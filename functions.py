@@ -13,13 +13,13 @@ keep_going = True
 INPUT_WIDTH = 640
 INPUT_HEIGHT = 360
 INPUT_CHANNELS = 3
-pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+
 
 def parsedInputs(inputs):
     sol = [0] * 9
     if "," in inputs:
         partes = inputs.split(',')
-        partes.remove(0)
+        partes.pop(0)
         #In order, R - L - U - D - J - X - Z - G - S
         for letter in partes:
             if(letter == 'R'):
@@ -128,7 +128,27 @@ def gameinfo(Frame, info):
 
     return posX, posY, spdX, spdY, stateNum, statuses, inputs
 
+def parseConfig(variableName, defaultValue=None):
+    config = pd.read_csv("config.txt", delimiter='=',index_col='variable')
+    try:
+        variable = config.loc[variableName][0]
+        return variable
+    except (KeyError,AttributeError):
+        if(defaultValue==None):
+            sys.exit("The config value of " + variableName + " doesn't exist. Check it and try again.")
+        return defaultValue
+
 def grabar_juego():
+    try:
+        framesLimit = int(parseConfig("frames", 999999))
+        endX1 = int(parseConfig("endX1"))
+        endX2 = int(parseConfig("endX2"))
+        endY1 = int(parseConfig("endY1"))
+        endY2 = int(parseConfig("endY2"))
+    except:
+        sys.exit("The config value of the frames or the end points are not integers. Check it and try again.")
+
+
     file_dir = select_celeste_path()[:-11] + f"training.txt"
     pyautogui.alert('Remenber to set Celeste in the front and full window screen. Press OK to start.')
     frames = 2
@@ -145,8 +165,7 @@ def grabar_juego():
     #Read the txt and only take the important columns that we want for later
     info = pd.read_csv(file_dir, delimiter='\t',index_col='Frames')
     info = info.drop(columns=['Line','Entities'])
-    print(info.size)
-    while death == False and end_level == False:
+    while death == False and end_level == False and frames <= framesLimit:
             image = prepare_image(screenshot())
             posX, posY, spdX, spdY, state, statuses, inputs = gameinfo(frames, info)
             if(posX=='skip'):
@@ -159,7 +178,7 @@ def grabar_juego():
                 data.append(aux)
                 if 'Dead' in statuses:
                     death = True
-                if (2043 <= int(float(posX)) <= 2111) & (40 >= int(float(posY)) + 12 >= 74): #Goal Coordinates (+12 because the coordinates of the player are in their feets)
+                if (endX1 <= int(float(posX)) <= endX2) & (endY1 >= int(float(posY)) + 12 >= endY2): #Goal Coordinates (+12 because the coordinates of the player are in their feets)
                     end_level = True
                     print('End Level')
                 avanzarframe(2)
@@ -221,6 +240,7 @@ def find_files(filename, search_path):
    return result
 
 def capture_info(im):
+    pytesseract.tesseract_cmd = parseConfig("tesseractLocation")
     text = pytesseract.image_to_string(im)
     split1 = text.split('\n')
     print(split1)

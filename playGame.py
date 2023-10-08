@@ -6,7 +6,7 @@ import time
 import pyautogui
 import numpy as np
 from train import final_model
-from functions import avanzarframe, capture_info, prepare_image, screenshot
+from functions import avanzarframe, capture_info, prepare_image, screenshot, parseConfig
 
 comands = ['R','L','U','D','J','X','Z','G','S']
 
@@ -51,14 +51,7 @@ def playTime(model_name, name):
     if os.path.isfile(weights_file) == False:
         sys.exit("The model called " + model_name + " does not exists.")    
     model.load_weights(weights_file)
-    mkdir_p("gamesPlayed")
-    game_file = f"gamesPlayed/{name}_{model_name}.tas"
-    if os.path.isfile(game_file):
-        answer = pyautogui.confirm(text='The name of the new game already exists in the directory. Do you want to overwrite it?',
-         buttons=['OK', 'Cancel'], title='ATTENTION')
-        if(answer=='Cancel'): 
-            return "The run doesn't start because the run name already exists"
-    pyautogui.alert('Remenber to set Celeste Studio in the front with a new clear document. It is necesary too to have Celeste to be the previous window so we can tab it. Press OK to start.')
+    pyautogui.alert('Remenber to set Celeste Studio in the front with a new clear documenta and maximaze the window. It is necesary too to have Celeste to be the previous window so we can tab it. Press OK to start.')
     time.sleep(5)
     introTas(name, model_name)
     pyautogui.hotkey('alt','tab', interval=0.1)
@@ -76,7 +69,17 @@ def playTime(model_name, name):
     avanzarframe(93 - frames)
     alttab()
     time.sleep(0.3)
-    while frames < 200:
+    try:
+        framesLimit = int(parseConfig("frames", 999999))
+        endX1 = int(parseConfig("endX1"))
+        endX2 = int(parseConfig("endX2"))
+        endY1 = int(parseConfig("endY1"))
+        endY2 = int(parseConfig("endY2"))
+    except:
+        sys.exit("The config value of the frames or the end points are not integers. Check it and try again.")
+    
+
+    while death == False and end_level == False and frames <= framesLimit:
             image = prepare_image(screenshot())
             alttab()
             im = pyautogui.screenshot(region=(0,900, 350, 135))
@@ -91,11 +94,17 @@ def playTime(model_name, name):
             writeTas(sol)
             if 'Dead' in statuses:
                 death = True
-            if (5040 <= int(float(posX)) <= 5056) & (-3266 >= int(float(posY)) + 12 >= -3280):
+            if (endX1 <= int(float(posX)) <= endX2) & (endY1 >= int(float(posY)) + 12 >= endY2):
                 end_level = True
             avanzarframe(2)
             frames = frames + 2
-            print(frames)
+    alttab()
+    pyautogui.write('EndExportGameInfo')
+    alttab()
+    avanzarframe(10)
+    pyautogui.keyDown('p')
+    pyautogui.keyUp('p')
+    print("The run is over.")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

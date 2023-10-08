@@ -1,0 +1,11 @@
+variable=valor
+tesseractLocation=C:\Program Files\Tesseract-OCR\tesseract.exe
+endX1=2043
+endX2=2111
+endY1=40
+endY2=74
+frames=200
+lossFunction=cosine_similarity
+optimizerFunction=adam
+epochs=20
+batchSize=50
