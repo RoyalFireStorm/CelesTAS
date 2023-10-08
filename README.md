@@ -8,14 +8,14 @@ Las Inteligencias Artificiales están cada vez apareciendo más en los videojueg
  * El mod Celeste Studio. Toda la información sobre la instalación e instrucciones para usarlo con el videojuego la podemos encontrar en su repositorio de Github. https://github.com/EverestAPI/CelesteTAS-EverestInterop
  * Tesseract (recomendable la versión 5.0 en adelante)
  * Python (recomendable la versión 3.11.5)
-   * Las librerías que usaremos en Python:
-        * Numpy.
-        * Pandas.
-        * mk_dir.
-        * Keras.
-        * Tensorflow.
-        * Pytesseract.
-        * Pyautogui.
+     * Las librerías que usaremos en Python:
+         * Numpy.
+         * Pandas.
+         * mk_dir.
+         * Keras.
+         * Tensorflow.
+         * Pytesseract.
+         * Pyautogui.
 * Nvidia Cuda (versión compatible con la gráfica en uso y Tensorflow). Véase https://www.tensorflow.org/install/gpu?hl=es-419#software_requirements
 
 
